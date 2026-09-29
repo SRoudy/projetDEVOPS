@@ -227,3 +227,9 @@ pipeline {
 ## 👤 Auteur
 
 **ESPRIT — UP ASI**  
+## Build Maven (backend)
+
+Prérequis : Java 17, Maven, MySQL (base test_db, root/root)
+
+    cd backend
+    mvn clean && mvn compile && mvn test && mvn package && mvn install
