@@ -1,11 +1,10 @@
-
-
 pipeline {
     agent any
 
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        IMAGE_NAME = 'sroudayna/sassiroudayna-projetdevops:latest'
     }
 
     stages {
@@ -62,6 +61,35 @@ pipeline {
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar -Dsonar.projectKey=projetDEVOPS -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dir('backend') {
+                    sh 'docker build -t $IMAGE_NAME .'
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PASS'
+                )]) {
+                    sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
+                    sh 'docker push $IMAGE_NAME'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('backend') {
+                    sh 'docker compose up -d'
                 }
             }
         }
